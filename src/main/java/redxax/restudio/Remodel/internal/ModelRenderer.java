@@ -12,6 +12,7 @@ import redxax.restudio.Remodel.model.BBFace;
 import redxax.restudio.Remodel.model.BBModel;
 import redxax.restudio.Remodel.model.BBTexture;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -51,6 +52,7 @@ public class ModelRenderer {
     private long lastNs;
 
     private final float[] color;
+    private int customTextureId = -1;
 
     public ModelRenderer(String p) {
         this(p, null);
@@ -66,32 +68,46 @@ public class ModelRenderer {
             this.color = null;
         }
 
-        try (InputStream in = new FileInputStream(p)) {
-            String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-
-            model = new Gson().fromJson(json, BBModel.class);
-            if (model != null) {
-                if (model.elements != null) {
-                    for (BBCube cube : model.elements) {
-                        cubeMap.put(cube.uuid, cube);
-                    }
-                }
-                if (this.color == null && model.textures != null) {
-                    for (BBTexture t : model.textures) {
-                        textureIds.add(TextureLoader.loadTexture(t.source));
-                    }
-                }
+        try {
+            InputStream in;
+            File file = new File(p);
+            if (file.exists()) {
+                in = new FileInputStream(file);
+            } else {
+                in = ModelRenderer.class.getClassLoader().getResourceAsStream(p);
             }
 
-            parseOutliner(root);
-            buildMeshes();
-            player = new AnimationPlayer(loadClips(root));
+            if (in == null) {
+                throw new FileNotFoundException("Model file not found at path: " + p);
+            }
 
-            if (player.hasClip("idle")) {
-                player.play("idle");
-            } else {
-                player.playFirst();
+            try (InputStream stream = in) {
+                String json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+                JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+
+                model = new Gson().fromJson(json, BBModel.class);
+                if (model != null) {
+                    if (model.elements != null) {
+                        for (BBCube cube : model.elements) {
+                            cubeMap.put(cube.uuid, cube);
+                        }
+                    }
+                    if (this.color == null && model.textures != null) {
+                        for (BBTexture t : model.textures) {
+                            textureIds.add(TextureLoader.loadTexture64(t.source));
+                        }
+                    }
+                }
+
+                parseOutliner(root);
+                buildMeshes();
+                player = new AnimationPlayer(loadClips(root));
+
+                if (player.hasClip("idle")) {
+                    player.play("idle");
+                } else {
+                    player.playFirst();
+                }
             }
         } catch (FileNotFoundException e) {
             throw new RuntimeException("Model file not found at path: " + p, e);
@@ -115,17 +131,20 @@ public class ModelRenderer {
         for (BBCube cube : cubeMap.values()) {
             int id = GL11.glGenLists(1);
             GL11.glNewList(id, GL11.GL_COMPILE);
-            float x0 = cube.from[0] / 16f, y0 = cube.from[1] / 16f, z0 = cube.from[2] / 16f;
-            float x1 = cube.to[0] / 16f, y1 = cube.to[1] / 16f, z1 = cube.to[2] / 16f;
+
+            float inf = cube.inflate != null ? cube.inflate / 16f : 0f;
+            float x0 = (cube.from[0] / 16f) - inf;
+            float y0 = (cube.from[1] / 16f) - inf;
+            float z0 = (cube.from[2] / 16f) - inf;
+            float x1 = (cube.to[0] / 16f) + inf;
+            float y1 = (cube.to[1] / 16f) + inf;
+            float z1 = (cube.to[2] / 16f) + inf;
 
             if (cube.faces == null) continue;
 
             for (Map.Entry<String, BBFace> entry : cube.faces.entrySet()) {
                 String fn = entry.getKey();
                 BBFace f = entry.getValue();
-                if (this.color == null && f.texture != null && f.texture >= 0 && f.texture < textureIds.size()) {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureIds.get(f.texture));
-                }
 
                 float u1 = 0, v1 = 0, u2 = 0, v2 = 0;
                 if(this.color == null && model.resolution != null && f.uv != null) {
@@ -356,6 +375,14 @@ public class ModelRenderer {
             player.play(name);
     }
 
+    public void setTexture(int textureId) {
+        this.customTextureId = textureId;
+    }
+
+    public void clearTexture() {
+        this.customTextureId = -1;
+    }
+
     public void render() {
         if (model == null) return;
 
@@ -379,6 +406,11 @@ public class ModelRenderer {
         } else {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
             GL11.glColor3f(1f, 1f, 1f);
+            if (customTextureId != -1) {
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, customTextureId);
+            } else if (!textureIds.isEmpty()) {
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureIds.get(0));
+            }
         }
 
         GL11.glEnable(GL11.GL_BLEND);

@@ -37,6 +37,14 @@ public class BlockbenchRemodel {
         renderer.setScale(s);
     }
 
+    public void setTexture(int textureId) {
+        renderer.setTexture(textureId);
+    }
+
+    public void clearTexture() {
+        renderer.clearTexture();
+    }
+
     public static class BlockbenchModelBuilder {
         private final String modelPath;
         private String hexColor = null;

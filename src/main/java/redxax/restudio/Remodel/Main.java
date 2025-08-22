@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import redxax.restudio.Remodel.api.BlockbenchRemodel;
+import redxax.restudio.Remodel.api.PlayerRemodel;
 
 public class Main {
 
@@ -44,6 +45,11 @@ public class Main {
         BlockbenchRemodel model = BlockbenchRemodel.from("C:\\Cube Test.bbmodel").build();
         // You Can Also Ignore Model Textures And Apply a Color By Using `.withColor("#FF0000")`.
         // Now, You Can Use `model.playAnimation()`, `model.setPosition()`, `model.setRotation()`, And Many Others To Manipulate The Model.
+
+        // As For Player API, Use:
+        // PlayerRemodel model = PlayerRemodel.builder().withTextureFromPlayer("RedxAx").build();
+        // You Can Also Use:
+        // .withTexture("C:/skin.png")
 
         GL11.glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         GL11.glEnable(GL11.GL_DEPTH_TEST);

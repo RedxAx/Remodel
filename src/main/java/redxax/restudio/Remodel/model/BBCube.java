@@ -11,4 +11,5 @@ public class BBCube {
     public float[] origin;
     public Map<String, BBFace> faces;
     public Boolean visibility;
+    public Float inflate;
 }
