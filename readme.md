@@ -2,6 +2,8 @@
 
 Remodel is a rendering library that supports most block bench features, as well as Minecraft Skins.
 
+https://github.com/user-attachments/assets/de3e1807-c9a7-4849-bbd5-fe5ebbb7532d
+
 ## Features
 - Supports Most BlockBench Models.
 - Fully Support BlockBench Animations No Matter The Complexity.
