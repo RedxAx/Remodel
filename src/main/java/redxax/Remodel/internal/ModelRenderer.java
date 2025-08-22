@@ -12,6 +12,8 @@ import redxax.Remodel.model.BBFace;
 import redxax.Remodel.model.BBModel;
 import redxax.Remodel.model.BBTexture;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -64,10 +66,7 @@ public class ModelRenderer {
             this.color = null;
         }
 
-        try (InputStream in = getClass().getResourceAsStream(p)) {
-            if (in == null) {
-                throw new RuntimeException("Model file not found in resources: " + p);
-            }
+        try (InputStream in = new FileInputStream(p)) {
             String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
 
@@ -94,6 +93,8 @@ public class ModelRenderer {
             } else {
                 player.playFirst();
             }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Model file not found at path: " + p, e);
         } catch (Exception e) {
             System.err.println("[ModelRenderer] Error loading model: " + e.getMessage());
             e.printStackTrace();

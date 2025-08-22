@@ -41,9 +41,9 @@ public class Main {
     }
 
     private void loop() {
-        BlockbenchRemodel model = BlockbenchRemodel.from("/Cube Test.bbmodel").build();
-        model.playAnimation("Rotation"); // Case-Sensitive.
+        BlockbenchRemodel model = BlockbenchRemodel.from("C:\\Cube Test.bbmodel").build();
         // You Can Also Ignore Model Textures And Apply a Color By Using `.withColor("#FF0000")`.
+        // Now, You Can Use `model.playAnimation()`, `model.setPosition()`, `model.setRotation()`, And Many Others To Manipulate The Model.
 
         GL11.glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
