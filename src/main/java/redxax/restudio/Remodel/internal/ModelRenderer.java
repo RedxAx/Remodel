@@ -37,6 +37,14 @@ public class ModelRenderer {
         }
     }
 
+    private static final float[] LIGHT_DIR = {0.5f, 0.8f, 0.5f};
+    private static final float[] NORMALIZED_LIGHT_DIR;
+
+    static {
+        float len = (float) Math.sqrt(LIGHT_DIR[0] * LIGHT_DIR[0] + LIGHT_DIR[1] * LIGHT_DIR[1] + LIGHT_DIR[2] * LIGHT_DIR[2]);
+        NORMALIZED_LIGHT_DIR = new float[]{LIGHT_DIR[0] / len, LIGHT_DIR[1] / len, LIGHT_DIR[2] / len};
+    }
+
     private BBModel model;
     private final List<Integer> textureIds = new ArrayList<>();
     private final Map<String, BBCube> cubeMap = new HashMap<>();
@@ -53,12 +61,18 @@ public class ModelRenderer {
 
     private final float[] color;
     private int customTextureId = -1;
+    private final boolean shading;
 
     public ModelRenderer(String p) {
-        this(p, null);
+        this(p, null, false);
     }
 
     public ModelRenderer(String p, String hexColor) {
+        this(p, hexColor, false);
+    }
+
+    public ModelRenderer(String p, String hexColor, boolean shading) {
+        this.shading = shading;
         if (hexColor != null && hexColor.matches("^#[0-9a-fA-F]{6}$")) {
             int r = Integer.valueOf(hexColor.substring(1, 3), 16);
             int g = Integer.valueOf(hexColor.substring(3, 5), 16);
@@ -145,6 +159,36 @@ public class ModelRenderer {
             for (Map.Entry<String, BBFace> entry : cube.faces.entrySet()) {
                 String fn = entry.getKey();
                 BBFace f = entry.getValue();
+
+                if (shading) {
+                    float[] normal = {0, 0, 0};
+                    normal = switch (fn) {
+                        case "north" -> new float[]{0, 0, 1};
+                        case "south" -> new float[]{0, 0, -1};
+                        case "west" -> new float[]{1, 0, 0};
+                        case "east" -> new float[]{-1, 0, 0};
+                        case "up" -> new float[]{0, 1, 0};
+                        case "down" -> new float[]{0, -1, 0};
+                        default -> normal;
+                    };
+
+                    float dot = normal[0] * NORMALIZED_LIGHT_DIR[0] + normal[1] * NORMALIZED_LIGHT_DIR[1] + normal[2] * NORMALIZED_LIGHT_DIR[2];
+
+                    float ambientTerm = 0.6f;
+                    float diffuseTerm = 0.6f;
+
+                    ambientTerm *= (0.7f + normal[1] * 0.3f);
+
+                    float intensity = ambientTerm + diffuseTerm * Math.max(0, dot);
+                    intensity = Math.min(1.0f, intensity);
+
+                    if (this.color != null) {
+                        GL11.glColor3f(this.color[0] * intensity, this.color[1] * intensity, this.color[2] * intensity);
+                    } else {
+                        GL11.glColor3f(intensity, intensity, intensity);
+                    }
+                }
+
 
                 float u1 = 0, v1 = 0, u2 = 0, v2 = 0;
                 if(this.color == null && model.resolution != null && f.uv != null) {
@@ -402,14 +446,16 @@ public class ModelRenderer {
         boolean isColored = this.color != null;
         if (isColored) {
             GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glColor3f(this.color[0], this.color[1], this.color[2]);
+            if (!shading) {
+                GL11.glColor3f(this.color[0], this.color[1], this.color[2]);
+            }
         } else {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
             GL11.glColor3f(1f, 1f, 1f);
             if (customTextureId != -1) {
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, customTextureId);
             } else if (!textureIds.isEmpty()) {
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureIds.get(0));
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureIds.getFirst());
             }
         }
 

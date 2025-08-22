@@ -104,6 +104,7 @@ public class PlayerRemodel {
         private String texturePath;
         private BufferedImage textureImage;
         private String playerName;
+        private boolean shading = false;
 
         public PlayerRemodelBuilder withColor(String hexColor) {
             this.hexColor = hexColor;
@@ -125,9 +126,17 @@ public class PlayerRemodel {
             return this;
         }
 
+        public PlayerRemodelBuilder withShading(boolean shading) {
+            this.shading = shading;
+            return this;
+        }
+
         public PlayerRemodel build() {
             BlockbenchRemodel.BlockbenchModelBuilder defaultBuilder = BlockbenchRemodel.from("player.bbmodel");
             BlockbenchRemodel.BlockbenchModelBuilder slimBuilder = BlockbenchRemodel.from("player_slim.bbmodel");
+
+            defaultBuilder.withShading(this.shading);
+            slimBuilder.withShading(this.shading);
 
             if (hexColor != null) {
                 defaultBuilder.withColor(hexColor);

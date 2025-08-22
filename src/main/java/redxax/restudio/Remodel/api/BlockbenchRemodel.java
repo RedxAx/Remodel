@@ -48,6 +48,7 @@ public class BlockbenchRemodel {
     public static class BlockbenchModelBuilder {
         private final String modelPath;
         private String hexColor = null;
+        private boolean shading = false;
 
         public BlockbenchModelBuilder(String modelPath) {
             this.modelPath = modelPath;
@@ -58,8 +59,13 @@ public class BlockbenchRemodel {
             return this;
         }
 
+        public BlockbenchModelBuilder withShading(boolean shading) {
+            this.shading = shading;
+            return this;
+        }
+
         public BlockbenchRemodel build() {
-            return new BlockbenchRemodel(new ModelRenderer(modelPath, hexColor));
+            return new BlockbenchRemodel(new ModelRenderer(modelPath, hexColor, shading));
         }
     }
 }
