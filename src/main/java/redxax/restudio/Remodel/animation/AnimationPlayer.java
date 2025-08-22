@@ -135,4 +135,8 @@ public class AnimationPlayer {
                 sample(boneUuid, "scale", 2, 1)
         };
     }
+
+    public float vis(String boneUuid) {
+        return sample(boneUuid, "visibility", 0, 1);
+    }
 }

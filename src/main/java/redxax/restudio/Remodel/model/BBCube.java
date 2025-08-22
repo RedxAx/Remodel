@@ -10,4 +10,5 @@ public class BBCube {
     public float[] rotation;
     public float[] origin;
     public Map<String, BBFace> faces;
+    public Boolean visibility;
 }

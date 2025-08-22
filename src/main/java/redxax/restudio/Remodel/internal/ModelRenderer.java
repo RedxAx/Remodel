@@ -222,7 +222,7 @@ public class ModelRenderer {
                     if (!kf.has("channel") || !kf.has("time")) continue;
 
                     String ch = kf.get("channel").getAsString();
-                    if (!ch.equals("position") && !ch.equals("rotation") && !ch.equals("scale")) continue;
+                    if (!ch.equals("position") && !ch.equals("rotation") && !ch.equals("scale") && !ch.equals("visibility")) continue;
 
                     float t = kf.get("time").getAsFloat();
                     String interp = kf.has("interpolation") ? kf.get("interpolation").getAsString() : "linear";
@@ -416,6 +416,7 @@ public class ModelRenderer {
         float[] p = player != null ? player.pos(bone.uuid) : new float[]{0, 0, 0};
         float[] r = player != null ? player.rot(bone.uuid) : new float[]{0, 0, 0};
         float[] s = player != null ? player.scl(bone.uuid) : new float[]{1, 1, 1};
+        float visibility = player != null ? player.vis(bone.uuid) : 1f;
 
         GL11.glPushMatrix();
 
@@ -429,20 +430,21 @@ public class ModelRenderer {
 
         GL11.glTranslatef(-bone.origin[0] / 16f, -bone.origin[1] / 16f, -bone.origin[2] / 16f);
 
-        for (String cubeUuid : bone.cubeUuids) {
-            renderCube(cubeMap.get(cubeUuid));
-        }
+        if (visibility > 0) {
+            for (String cubeUuid : bone.cubeUuids) {
+                renderCube(cubeMap.get(cubeUuid));
+            }
 
-        for (String childUuid : bone.childUuids) {
-            renderBoneHierarchy(bones.get(childUuid));
+            for (String childUuid : bone.childUuids) {
+                renderBoneHierarchy(bones.get(childUuid));
+            }
         }
 
         GL11.glPopMatrix();
     }
 
     private void renderCube(BBCube cube) {
-        if (cube == null)
-            return;
+        if (cube == null || (cube.visibility != null && !cube.visibility) || (cube.name.equals("shadow") || cube.name.equals("hitbox"))) return;
         GL11.glPushMatrix();
         if (cube.origin != null) {
             GL11.glTranslatef(cube.origin[0] / 16f, cube.origin[1] / 16f, cube.origin[2] / 16f);
