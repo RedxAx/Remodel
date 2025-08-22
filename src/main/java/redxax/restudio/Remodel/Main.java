@@ -1,9 +1,9 @@
-package redxax.Remodel;
+package redxax.restudio.Remodel;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import redxax.Remodel.api.BlockbenchRemodel;
+import redxax.restudio.Remodel.api.BlockbenchRemodel;
 
 public class Main {
 

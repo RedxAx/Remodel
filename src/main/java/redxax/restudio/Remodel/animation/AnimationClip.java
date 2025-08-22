@@ -1,6 +1,4 @@
-package redxax.Remodel.animation;
-
-import redxax.Remodel.animation.BoneAnimation;
+package redxax.restudio.Remodel.animation;
 
 import java.util.HashMap;
 import java.util.Map;

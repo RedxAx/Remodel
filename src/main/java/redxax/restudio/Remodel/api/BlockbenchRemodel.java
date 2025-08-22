@@ -1,6 +1,6 @@
-package redxax.Remodel.api;
+package redxax.restudio.Remodel.api;
 
-import redxax.Remodel.internal.ModelRenderer;
+import redxax.restudio.Remodel.internal.ModelRenderer;
 
 public class BlockbenchRemodel {
     private final ModelRenderer renderer;

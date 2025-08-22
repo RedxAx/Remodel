@@ -1,4 +1,4 @@
-package redxax.Remodel.model;
+package redxax.restudio.Remodel.model;
 
 import java.util.List;
 

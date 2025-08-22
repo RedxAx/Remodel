@@ -1,4 +1,4 @@
-package redxax.Remodel.internal;
+package redxax.restudio.Remodel.internal;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.stb.STBImage;

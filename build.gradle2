@@ -9,7 +9,7 @@ group = 'redxax'
 version = '1.0.0'
 
 application {
-    mainClassName = 'redxax.Remodel.Main'
+    mainClassName = 'redxax.restudio.Remodel.Main'
 }
 
 project.ext.lwjglVersion = "3.3.6"

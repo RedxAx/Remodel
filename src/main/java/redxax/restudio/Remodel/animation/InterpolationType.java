@@ -1,4 +1,4 @@
-package redxax.Remodel.animation;
+package redxax.restudio.Remodel.animation;
 
 public enum InterpolationType {
     STEP,

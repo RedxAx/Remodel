@@ -1,4 +1,4 @@
-package redxax.Remodel.animation;
+package redxax.restudio.Remodel.animation;
 
 import java.util.ArrayList;
 import java.util.HashMap;

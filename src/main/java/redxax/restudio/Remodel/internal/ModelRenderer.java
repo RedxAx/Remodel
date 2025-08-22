@@ -1,16 +1,16 @@
-package redxax.Remodel.internal;
+package redxax.restudio.Remodel.internal;
 
 import com.google.gson.*;
 import org.lwjgl.opengl.GL11;
-import redxax.Remodel.animation.AnimationClip;
-import redxax.Remodel.animation.AnimationPlayer;
-import redxax.Remodel.animation.BoneAnimation;
-import redxax.Remodel.animation.InterpolationType;
-import redxax.Remodel.animation.KeyFrame;
-import redxax.Remodel.model.BBCube;
-import redxax.Remodel.model.BBFace;
-import redxax.Remodel.model.BBModel;
-import redxax.Remodel.model.BBTexture;
+import redxax.restudio.Remodel.animation.AnimationClip;
+import redxax.restudio.Remodel.animation.AnimationPlayer;
+import redxax.restudio.Remodel.animation.BoneAnimation;
+import redxax.restudio.Remodel.animation.InterpolationType;
+import redxax.restudio.Remodel.animation.KeyFrame;
+import redxax.restudio.Remodel.model.BBCube;
+import redxax.restudio.Remodel.model.BBFace;
+import redxax.restudio.Remodel.model.BBModel;
+import redxax.restudio.Remodel.model.BBTexture;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
