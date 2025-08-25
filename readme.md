@@ -1,4 +1,4 @@
-# Remodel - Render 3D Block Bench Models And MC Skins With Ease
+# Remodel By ReStudio - Render 3D Block Bench Models And MC Skins With Ease
 
 Remodel is a rendering library that supports most block bench features, as well as Minecraft Skins.
 
@@ -8,6 +8,8 @@ https://github.com/user-attachments/assets/de3e1807-c9a7-4849-bbd5-fe5ebbb7532d
 - Supports Most BlockBench Models.
 - Fully Support BlockBench Animations No Matter The Complexity.
 - Supports Wide/Slim Minecraft Skins (Path, or Minecraft Name).
+- Supports Capes, And Elytra Capes.
+- Built-In Caching System For Minecraft Skins/Capes.
 - Simple And Easy Builder-Based API.
 
 ## Requirements:
@@ -101,6 +103,10 @@ public class Main {
     }
 }
 ```
+
+## Contact
+- Join The Official [ReStudio Discord](https://discord.gg/UAEV8WgC6M).
+- DM Me On Discord: `RedxAx`.
 
 ## Building From Source
 Just run `./gradlew build`.
