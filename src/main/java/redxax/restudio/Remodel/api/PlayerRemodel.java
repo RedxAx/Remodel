@@ -119,9 +119,13 @@ public class PlayerRemodel {
     }
 
     public void setTextureByPlayerName(String playerName) {
+        setTextureByPlayerName(playerName, true);
+    }
+
+    public void setTextureByPlayerName(String playerName, boolean updateCape) {
         BufferedImage skin = SkinFetcher.getSkin(playerName);
         setTexture(skin);
-        if (cape != null) {
+        if (cape != null && updateCape) {
             cape.setTextureByPlayerName(playerName);
         }
     }
@@ -169,6 +173,10 @@ public class PlayerRemodel {
         return cape != null && cape.setCape(id);
     }
 
+    public CapeRemodel getCape() {
+        return cape;
+    }
+
     public void setCapeTexture(BufferedImage image) {
         if (cape != null) {
             cape.setTexture(image);
@@ -193,6 +201,7 @@ public class PlayerRemodel {
         private String playerName;
         private boolean fetchSkinFromPlayer = false;
         private boolean shading = false;
+        private CapeRemodel cape = null;
 
         public PlayerRemodelBuilder withColor(String hexColor) {
             this.hexColor = hexColor;
@@ -225,6 +234,11 @@ public class PlayerRemodel {
             return this;
         }
 
+        public PlayerRemodelBuilder withCape(CapeRemodel cape) {
+            this.cape = cape;
+            return this;
+        }
+
         public PlayerRemodel build() {
             BlockbenchRemodel.BlockbenchModelBuilder defaultBuilder = BlockbenchRemodel.from("player.bbmodel");
             BlockbenchRemodel.BlockbenchModelBuilder slimBuilder = BlockbenchRemodel.from("player_slim.bbmodel");
@@ -240,8 +254,8 @@ public class PlayerRemodel {
             BlockbenchRemodel defaultModel = defaultBuilder.build();
             BlockbenchRemodel slimModel = slimBuilder.build();
 
-            CapeRemodel cape = null;
-            if (playerName != null) {
+            CapeRemodel cape = this.cape;
+            if (cape == null && playerName != null) {
                 cape = CapeRemodel.builder().withPlayer(playerName).withShading(this.shading).build();
             }
 
@@ -257,7 +271,7 @@ public class PlayerRemodel {
             } else if (textureImage != null) {
                 player.setTexture(textureImage);
             } else if (playerName != null && fetchSkinFromPlayer) {
-                player.setTextureByPlayerName(playerName);
+                player.setTextureByPlayerName(playerName, this.cape == null);
             }
 
             return player;

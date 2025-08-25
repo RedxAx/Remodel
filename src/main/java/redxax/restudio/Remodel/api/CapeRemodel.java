@@ -117,6 +117,17 @@ public class CapeRemodel {
         return availableCapes;
     }
 
+    public void setAvailableCapes(List<CapeInfo> capes, String activeCapeId) {
+        this.availableCapes = capes;
+        if (activeCapeId != null) {
+            if (!setCape(activeCapeId)) {
+                clearTexture();
+            }
+        } else {
+            clearTexture();
+        }
+    }
+
     public boolean setCape(int index) {
         if (index >= 0 && index < availableCapes.size()) {
             CapeInfo cape = availableCapes.get(index);
