@@ -79,17 +79,23 @@ public class CapeRemodel {
     }
 
     private void applyTexture(BufferedImage image) {
-        clearTexture();
-        if (image == null) return;
-        this.customTextureId = TextureLoader.loadTexture(image);
         if (this.customTextureId != -1) {
-            capeModel.setTexture(this.customTextureId);
-            elytraModel.setTexture(this.customTextureId);
+            GL11.glDeleteTextures(this.customTextureId);
+        }
+        this.customTextureId = -1;
+        capeModel.clearTexture();
+        elytraModel.clearTexture();
+
+        if (image != null) {
+            this.customTextureId = TextureLoader.loadTexture(image);
+            if (this.customTextureId != -1) {
+                capeModel.setTexture(this.customTextureId);
+                elytraModel.setTexture(this.customTextureId);
+            }
         }
     }
 
     public void setTexture(BufferedImage image) {
-        this.availableCapes.clear();
         this.currentCapeIndex = -1;
         applyTexture(image);
     }
@@ -138,6 +144,10 @@ public class CapeRemodel {
         capeModel.clearTexture();
         elytraModel.clearTexture();
         this.currentCapeIndex = -1;
+    }
+
+    public void setShading(boolean shading) {
+        capeModel.setShading(shading);
     }
 
     public static class CapeRemodelBuilder {

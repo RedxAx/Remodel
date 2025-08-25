@@ -175,6 +175,17 @@ public class PlayerRemodel {
         }
     }
 
+    public void setShadePlayer(boolean shading) {
+        defaultModel.setShading(shading);
+        slimModel.setShading(shading);
+    }
+
+    public void setShadeCape(boolean shading) {
+        if (cape != null) {
+            cape.setShading(shading);
+        }
+    }
+
     public static class PlayerRemodelBuilder {
         private String hexColor = null;
         private String texturePath;

@@ -41,6 +41,10 @@ public class BlockbenchRemodel {
         renderer.setTexture(textureId);
     }
 
+    public void setShading(boolean shading) {
+        renderer.setShading(shading);
+    }
+
     public void clearTexture() {
         renderer.clearTexture();
     }

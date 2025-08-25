@@ -61,7 +61,7 @@ public class ModelRenderer {
 
     private final float[] color;
     private int customTextureId = -1;
-    private final boolean shading;
+    private boolean shading;
 
     public ModelRenderer(String p) {
         this(p, null, false);
@@ -186,6 +186,14 @@ public class ModelRenderer {
                         GL11.glColor3f(this.color[0] * intensity, this.color[1] * intensity, this.color[2] * intensity);
                     } else {
                         GL11.glColor3f(intensity, intensity, intensity);
+                    }
+                } else {
+                    // If shading is off, set the base color for the face within the display list
+                    if (this.color != null) {
+                        GL11.glColor3f(this.color[0], this.color[1], this.color[2]);
+                    } else {
+                        // For textured models without shading, the default color is white (full intensity)
+                        GL11.glColor3f(1f, 1f, 1f);
                     }
                 }
 
@@ -423,6 +431,11 @@ public class ModelRenderer {
         this.customTextureId = textureId;
     }
 
+    public void setShading(boolean shading) {
+        this.shading = shading;
+        buildMeshes();
+    }
+
     public void clearTexture() {
         this.customTextureId = -1;
     }
@@ -446,12 +459,11 @@ public class ModelRenderer {
         boolean isColored = this.color != null;
         if (isColored) {
             GL11.glDisable(GL11.GL_TEXTURE_2D);
-            if (!shading) {
-                GL11.glColor3f(this.color[0], this.color[1], this.color[2]);
-            }
+            // Color is now set per face within the display list, whether shaded or not.
+            // No global GL11.glColor3f call needed here for colored models.
         } else {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glColor3f(1f, 1f, 1f);
+            GL11.glColor3f(1f, 1f, 1f); // Reset color to white for textured models
             if (customTextureId != -1) {
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, customTextureId);
             } else if (!textureIds.isEmpty()) {
