@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class CacheManager {
     private static final String CACHE_DIR = ".remodel_cache";
     private static final long CACHE_EXPIRY_MS = TimeUnit.HOURS.toMillis(24);
-    private static final Path CACHE_PATH = Paths.get(CACHE_DIR);
+    private static final Path CACHE_PATH = Paths.get(System.getProperty("user.home"), CACHE_DIR);
     private static final Path SKINS_PATH = CACHE_PATH.resolve("skins");
     private static final Path CAPES_PATH = CACHE_PATH.resolve("capes");
     private static final Path UUID_CACHE_PATH = CACHE_PATH.resolve("uuid_cache.json");
