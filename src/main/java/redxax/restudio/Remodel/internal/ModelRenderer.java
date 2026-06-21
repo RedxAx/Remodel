@@ -37,13 +37,8 @@ public class ModelRenderer {
         }
     }
 
-    private static final float[] LIGHT_DIR = {0.5f, 0.8f, 0.5f};
-    private static final float[] NORMALIZED_LIGHT_DIR;
-
-    static {
-        float len = (float) Math.sqrt(LIGHT_DIR[0] * LIGHT_DIR[0] + LIGHT_DIR[1] * LIGHT_DIR[1] + LIGHT_DIR[2] * LIGHT_DIR[2]);
-        NORMALIZED_LIGHT_DIR = new float[]{LIGHT_DIR[0] / len, LIGHT_DIR[1] / len, LIGHT_DIR[2] / len};
-    }
+    private static final float[] LIGHT_0 = {0.140028f, 0.70014f, -0.70014f};
+    private static final float[] LIGHT_1 = {-0.196116f, 0.980581f, 0.0f};
 
     private BBModel model;
     private final List<Integer> textureIds = new ArrayList<>();
@@ -55,6 +50,8 @@ public class ModelRenderer {
     private float posX, posY, posZ;
     private float rotX, rotY, rotZ;
     private float scaleX = 1, scaleY = 1, scaleZ = 1;
+    private boolean animationsEnabled = true;
+    private final Map<String, float[]> boneRotationOverrides = new HashMap<>();
 
     public AnimationPlayer player;
     private long lastNs;
@@ -172,15 +169,9 @@ public class ModelRenderer {
                         default -> normal;
                     };
 
-                    float dot = normal[0] * NORMALIZED_LIGHT_DIR[0] + normal[1] * NORMALIZED_LIGHT_DIR[1] + normal[2] * NORMALIZED_LIGHT_DIR[2];
-
-                    float ambientTerm = 0.6f;
-                    float diffuseTerm = 0.6f;
-
-                    ambientTerm *= (0.7f + normal[1] * 0.3f);
-
-                    float intensity = ambientTerm + diffuseTerm * Math.max(0, dot);
-                    intensity = Math.min(1.0f, intensity);
+                    float first = Math.max(0.0f, normal[0] * LIGHT_0[0] + normal[1] * LIGHT_0[1] + normal[2] * LIGHT_0[2]);
+                    float second = Math.max(0.0f, normal[0] * LIGHT_1[0] + normal[1] * LIGHT_1[1] + normal[2] * LIGHT_1[2]);
+                    float intensity = Math.max(0.48f, Math.min(1.0f, 0.48f + first * 0.32f + second * 0.2f));
 
                     if (this.color != null) {
                         GL11.glColor3f(this.color[0] * intensity, this.color[1] * intensity, this.color[2] * intensity);
@@ -188,11 +179,9 @@ public class ModelRenderer {
                         GL11.glColor3f(intensity, intensity, intensity);
                     }
                 } else {
-                    // If shading is off, set the base color for the face within the display list
                     if (this.color != null) {
                         GL11.glColor3f(this.color[0], this.color[1], this.color[2]);
                     } else {
-                        // For textured models without shading, the default color is white (full intensity)
                         GL11.glColor3f(1f, 1f, 1f);
                     }
                 }
@@ -447,23 +436,17 @@ public class ModelRenderer {
         float dt = lastNs == 0 ? 0 : (n - lastNs) * 1e-9f;
         lastNs = n;
 
-        if (player != null) player.update(dt);
+        if (player != null && animationsEnabled) player.update(dt);
 
         GL11.glPushMatrix();
-        GL11.glTranslatef(posX, posY, posZ);
-        GL11.glRotatef(rotX, 1, 0, 0);
-        GL11.glRotatef(rotY, 0, 1, 0);
-        GL11.glRotatef(rotZ, 0, 0, 1);
-        GL11.glScalef(scaleX, scaleY, scaleZ);
+        applyModelTransform();
 
         boolean isColored = this.color != null;
         if (isColored) {
             GL11.glDisable(GL11.GL_TEXTURE_2D);
-            // Color is now set per face within the display list, whether shaded or not.
-            // No global GL11.glColor3f call needed here for colored models.
         } else {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glColor3f(1f, 1f, 1f); // Reset color to white for textured models
+            GL11.glColor3f(1f, 1f, 1f);
             if (customTextureId != -1) {
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, customTextureId);
             } else if (!textureIds.isEmpty()) {
@@ -499,28 +482,117 @@ public class ModelRenderer {
         GL11.glPopMatrix();
     }
 
+    public boolean withBoneTransform(String boneName, Runnable action) {
+        BoneInfo bone = boneByName(boneName);
+        if (bone == null || action == null) {
+            return false;
+        }
+        GL11.glPushMatrix();
+        try {
+            applyModelTransform();
+            List<BoneInfo> path = bonePath(bone);
+            if (!visiblePath(path)) {
+                return false;
+            }
+            for (BoneInfo pathBone : path) {
+                applyBoneTransform(pathBone);
+            }
+            action.run();
+        } finally {
+            GL11.glPopMatrix();
+        }
+        return true;
+    }
+
+    public boolean withBoneLocalTransform(String boneName, Runnable action) {
+        BoneInfo bone = boneByName(boneName);
+        if (bone == null || action == null) {
+            return false;
+        }
+        GL11.glPushMatrix();
+        try {
+            applyModelTransform();
+            List<BoneInfo> path = bonePath(bone);
+            if (!visiblePath(path)) {
+                return false;
+            }
+            for (int i = 0; i < path.size() - 1; i++) {
+                applyBoneTransform(path.get(i));
+            }
+            applyBoneLocalTransform(bone);
+            action.run();
+        } finally {
+            GL11.glPopMatrix();
+        }
+        return true;
+    }
+
+    public void setAnimationsEnabled(boolean animationsEnabled) {
+        this.animationsEnabled = animationsEnabled;
+    }
+
+    public void setBoneRotation(String boneName, float x, float y, float z) {
+        BoneInfo bone = boneByName(boneName);
+        if (bone != null) {
+            boneRotationOverrides.put(bone.uuid, new float[]{x, y, z});
+        }
+    }
+
+    public void clearBoneRotation(String boneName) {
+        BoneInfo bone = boneByName(boneName);
+        if (bone != null) {
+            boneRotationOverrides.remove(bone.uuid);
+        }
+    }
+
+    private boolean visiblePath(List<BoneInfo> path) {
+        for (BoneInfo bone : path) {
+            if (animationVisibility(bone.uuid) <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<BoneInfo> bonePath(BoneInfo bone) {
+        LinkedList<BoneInfo> path = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+        BoneInfo current = bone;
+        while (current != null && visited.add(current.uuid)) {
+            path.addFirst(current);
+            current = current.parentUuid != null ? bones.get(current.parentUuid) : null;
+        }
+        return path;
+    }
+
+    private BoneInfo boneByName(String name) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+        for (BoneInfo bone : bones.values()) {
+            if (bone.name.equalsIgnoreCase(name)) {
+                return bone;
+            }
+        }
+        return null;
+    }
+
+    private void applyModelTransform() {
+        GL11.glTranslatef(posX, posY, posZ);
+        GL11.glRotatef(rotX, 1, 0, 0);
+        GL11.glRotatef(rotY, 0, 1, 0);
+        GL11.glRotatef(rotZ, 0, 0, 1);
+        GL11.glScalef(scaleX, scaleY, scaleZ);
+    }
+
     private void renderBoneHierarchy(BoneInfo bone) {
         if (bone == null)
             return;
 
-        float[] p = player != null ? player.pos(bone.uuid) : new float[]{0, 0, 0};
-        float[] r = player != null ? player.rot(bone.uuid) : new float[]{0, 0, 0};
-        float[] s = player != null ? player.scl(bone.uuid) : new float[]{1, 1, 1};
-        float visibility = player != null ? player.vis(bone.uuid) : 1f;
-
         GL11.glPushMatrix();
+        applyBoneTransform(bone);
 
-        GL11.glTranslatef((bone.origin[0] + p[0]) / 16f, (bone.origin[1] + p[1]) / 16f, (bone.origin[2] + p[2]) / 16f);
-
-        GL11.glRotatef(bone.rotation[2] + r[2], 0, 0, 1);
-        GL11.glRotatef(bone.rotation[1] + r[1], 0, 1, 0);
-        GL11.glRotatef(bone.rotation[0] + r[0], 1, 0, 0);
-
-        GL11.glScalef(s[0], s[1], s[2]);
-
-        GL11.glTranslatef(-bone.origin[0] / 16f, -bone.origin[1] / 16f, -bone.origin[2] / 16f);
-
-        if (visibility > 0) {
+        if (animationVisibility(bone.uuid) > 0) {
             for (String cubeUuid : bone.cubeUuids) {
                 renderCube(cubeMap.get(cubeUuid));
             }
@@ -531,6 +603,54 @@ public class ModelRenderer {
         }
 
         GL11.glPopMatrix();
+    }
+
+    private void applyBoneTransform(BoneInfo bone) {
+        float[] p = animationPosition(bone.uuid);
+        float[] r = animationRotation(bone.uuid);
+        float[] s = animationScale(bone.uuid);
+
+        GL11.glTranslatef((bone.origin[0] + p[0]) / 16f, (bone.origin[1] + p[1]) / 16f, (bone.origin[2] + p[2]) / 16f);
+
+        GL11.glRotatef(bone.rotation[2] + r[2], 0, 0, 1);
+        GL11.glRotatef(bone.rotation[1] + r[1], 0, 1, 0);
+        GL11.glRotatef(bone.rotation[0] + r[0], 1, 0, 0);
+
+        GL11.glScalef(s[0], s[1], s[2]);
+
+        GL11.glTranslatef(-bone.origin[0] / 16f, -bone.origin[1] / 16f, -bone.origin[2] / 16f);
+    }
+
+    private void applyBoneLocalTransform(BoneInfo bone) {
+        float[] p = animationPosition(bone.uuid);
+        float[] r = animationRotation(bone.uuid);
+        float[] s = animationScale(bone.uuid);
+
+        GL11.glTranslatef((bone.origin[0] + p[0]) / 16f, (bone.origin[1] + p[1]) / 16f, (bone.origin[2] + p[2]) / 16f);
+        GL11.glRotatef(bone.rotation[2] + r[2], 0, 0, 1);
+        GL11.glRotatef(bone.rotation[1] + r[1], 0, 1, 0);
+        GL11.glRotatef(bone.rotation[0] + r[0], 1, 0, 0);
+        GL11.glScalef(s[0], s[1], s[2]);
+    }
+
+    private float[] animationPosition(String boneUuid) {
+        return player != null && animationsEnabled ? player.pos(boneUuid) : new float[]{0, 0, 0};
+    }
+
+    private float[] animationRotation(String boneUuid) {
+        float[] override = boneRotationOverrides.get(boneUuid);
+        if (override != null) {
+            return override;
+        }
+        return player != null && animationsEnabled ? player.rot(boneUuid) : new float[]{0, 0, 0};
+    }
+
+    private float[] animationScale(String boneUuid) {
+        return player != null && animationsEnabled ? player.scl(boneUuid) : new float[]{1, 1, 1};
+    }
+
+    private float animationVisibility(String boneUuid) {
+        return player != null && animationsEnabled ? player.vis(boneUuid) : 1f;
     }
 
     private void renderCube(BBCube cube) {
