@@ -78,6 +78,11 @@ public class CapeRemodel {
         elytraModel.setScale(s);
     }
 
+    public void setAnimationsEnabled(boolean animationsEnabled) {
+        capeModel.setAnimationsEnabled(animationsEnabled);
+        elytraModel.setAnimationsEnabled(animationsEnabled);
+    }
+
     private void applyTexture(BufferedImage image) {
         if (this.customTextureId != -1) {
             GL11.glDeleteTextures(this.customTextureId);

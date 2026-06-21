@@ -45,8 +45,28 @@ public class BlockbenchRemodel {
         renderer.setShading(shading);
     }
 
+    public void setAnimationsEnabled(boolean animationsEnabled) {
+        renderer.setAnimationsEnabled(animationsEnabled);
+    }
+
+    public void setBoneRotation(String boneName, float x, float y, float z) {
+        renderer.setBoneRotation(boneName, x, y, z);
+    }
+
+    public void clearBoneRotation(String boneName) {
+        renderer.clearBoneRotation(boneName);
+    }
+
     public void clearTexture() {
         renderer.clearTexture();
+    }
+
+    public boolean withBoneTransform(String boneName, Runnable action) {
+        return renderer.withBoneTransform(boneName, action);
+    }
+
+    public boolean withBoneLocalTransform(String boneName, Runnable action) {
+        return renderer.withBoneLocalTransform(boneName, action);
     }
 
     public static class BlockbenchModelBuilder {
