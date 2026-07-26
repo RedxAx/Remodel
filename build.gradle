@@ -2,6 +2,7 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id 'java-library'
+    id 'maven-publish'
 }
 
 group = 'redxax'
@@ -32,6 +33,16 @@ switch (OperatingSystem.current()) {
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        restudio(MavenPublication) {
+            from components.java
+            groupId = 'dev.restudio'
+            artifactId = 'remodel'
+        }
+    }
 }
 
 dependencies {
