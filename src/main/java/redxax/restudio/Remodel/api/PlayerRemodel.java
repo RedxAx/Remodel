@@ -315,6 +315,7 @@ public class PlayerRemodel {
         private BufferedImage textureImage;
         private String playerName;
         private boolean fetchSkinFromPlayer = false;
+        private boolean slim = false;
         private boolean shading = false;
         private CapeRemodel cape = null;
 
@@ -341,6 +342,11 @@ public class PlayerRemodel {
         public PlayerRemodelBuilder withTextureFromPlayer(String playerName) {
             this.playerName = playerName;
             this.fetchSkinFromPlayer = true;
+            return this;
+        }
+
+        public PlayerRemodelBuilder withSlim(boolean slim) {
+            this.slim = slim;
             return this;
         }
 
@@ -375,6 +381,7 @@ public class PlayerRemodel {
             }
 
             PlayerRemodel player = new PlayerRemodel(defaultModel, slimModel, cape);
+            player.setSlim(this.slim);
 
             if (texturePath != null) {
                 try {
